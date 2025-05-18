@@ -1,22 +1,29 @@
-<script setup>
-import StudentCoursePlanner from './components/StudentCoursePlanner.vue'
-</script>
-
 <template>
-   <StudentCoursePlanner />
+  <div>
+    <nav>
+      <router-link to="/dashboard">🏠 Dashboard</router-link> |
+      <router-link to="/student">📘 學生選課</router-link> |
+      <router-link to="/abilities">🧠 能力管理</router-link>
+      <router-link to="/clubs">🎽 社團活動</router-link>
+    </nav>
+
+    <hr />
+
+    <router-view />
+  </div>
 </template>
 
+<script setup>
+// 不需要再 import 組件，由 router 控制切換
+</script>
+
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+nav {
+  padding: 12px;
+  background-color: #f5f5f5;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+router-link {
+  margin: 0 10px;
+  text-decoration: none;
 }
 </style>

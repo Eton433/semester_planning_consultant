@@ -4,7 +4,8 @@ require('dotenv').config();
 const db = require('./config/db');
 const courseRoutes = require('./routes/course.route');
 const studentRoutes = require('./routes/students.route'); // 注意檔名對不對
-
+const abilityRoutes = require('./routes/ability.route');
+const participateRoutes = require('./routes/participate.route');
 const app = express();
 
 // Middleware
@@ -12,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/courses', courseRoutes);
 app.use('/students', studentRoutes); // 非常關鍵：URL prefix 是 /students
+app.use('/abilities', abilityRoutes);
+app.use('/clubs', participateRoutes);
 
 // 測試首頁路由
 app.get('/', (req, res) => {
