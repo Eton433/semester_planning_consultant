@@ -5,7 +5,7 @@ const login = async (req, res) => {
 
   try {
     const [rows] = await db.promise().query(
-      'SELECT * FROM Users WHERE username = ? AND password = ?',
+      'SELECT * FROM Student WHERE student_id = ? AND password = ?',
       [username, password]
     );
 

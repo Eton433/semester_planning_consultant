@@ -17,6 +17,7 @@ const login = async () => {
 
     message.value = res.data.message || '登入成功！'
     console.log('✅ 登入成功：', res.data.user)
+     localStorage.setItem('student_id', res.data.user.student_id)
 
     router.push('/dashboard')
   } catch (err) {

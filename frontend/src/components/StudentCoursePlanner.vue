@@ -2,13 +2,13 @@
   <div class="container">
     <h2>學生選課規劃</h2>
 
-    <label>學生學號：</label>
-    <input v-model="studentId" placeholder="例如 112306001" />
-
     <h3>選課資訊</h3>
     <div v-for="(course, index) in courseList" :key="index" class="course-block">
       <label>課程代碼：
-        <input v-model="course.course_id" type="number" />
+        <input v-model="course.course_id" type="number" @blur="fetchCourseName(index)" />
+      </label>
+      <label>課程名稱：
+        <input :value="course.course_name" disabled />
       </label>
       <label>學期：
         <input v-model="course.semester" placeholder="如 2025-1" />
@@ -35,11 +35,12 @@
 <script setup>
 import { ref } from 'vue'
 
-const studentId = ref('')
+const studentId = ref(localStorage.getItem('student_id') || '')
 const message = ref('')
 const courseList = ref([
   {
     course_id: 306009001,
+    course_name: '',
     semester: '2025-1',
     expected_grade: 85,
     estimated_study_hours: 5
@@ -49,6 +50,7 @@ const courseList = ref([
 function addCourse() {
   courseList.value.push({
     course_id: '',
+    course_name: '',
     semester: '',
     expected_grade: '',
     estimated_study_hours: ''
@@ -59,9 +61,23 @@ function removeCourse(index) {
   courseList.value.splice(index, 1)
 }
 
+async function fetchCourseName(index) {
+  const id = courseList.value[index].course_id
+  if (!id) return
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/courses/${id}`)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    courseList.value[index].course_name = data.name
+  } catch {
+    courseList.value[index].course_name = '❌ 查無此課程'
+  }
+}
+
 async function submitCourses() {
   if (!studentId.value || courseList.value.length === 0) {
-    message.value = '請輸入學號並至少選一門課'
+    message.value = '❌ 登入失效或無選課內容'
     return
   }
 
@@ -93,5 +109,9 @@ async function submitCourses() {
 .course-block label {
   display: block;
   margin: 5px 0;
+}
+input[disabled] {
+  background-color: #eee;
+  color: #666;
 }
 </style>
