@@ -4,12 +4,15 @@
 
     <h3>選課資訊</h3>
     <div v-for="(course, index) in courseList" :key="index" class="course-block">
-      <label>課程代碼：
-        <input v-model="course.course_id" type="number" @blur="fetchCourseName(index)" />
+      <label>課程：
+        <select v-model="course.course_id" @change="updateCourseName(index)">
+          <option disabled value="">請選擇課程</option>
+          <option v-for="opt in courseOptions" :key="opt.id" :value="opt.id">
+            {{ opt.id }} - {{ opt.name }}
+          </option>
+        </select>
       </label>
-      <label>課程名稱：
-        <input :value="course.course_name" disabled />
-      </label>
+
       <label>學期：
         <input v-model="course.semester" placeholder="如 2025-1" />
       </label>
@@ -26,20 +29,25 @@
     <br /><br />
     <button @click="submitCourses">📤 提交選課</button>
 
-    <div v-if="message" :style="{ marginTop: '20px' }">
+    <div v-if="message" style="margin-top: 20px;">
       <strong>{{ message }}</strong>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const studentId = ref(localStorage.getItem('student_id') || '')
-const message = ref('')
+// 模擬學生 ID（從 localStorage 取得）
+const studentId = ref(localStorage.getItem('student_id') || '1')
+
+// 下拉式選單用的課程資料
+const courseOptions = ref([])
+
+// 儲存學生選的課程
 const courseList = ref([
   {
-    course_id: 306009001,
+    course_id: '',
     course_name: '',
     semester: '2025-1',
     expected_grade: 85,
@@ -47,6 +55,27 @@ const courseList = ref([
   }
 ])
 
+const message = ref('')
+
+// 頁面載入時抓取課程選單
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost:3000/api/courses') // ← 改成你的後端 API
+    if (!res.ok) throw new Error('Fetch failed')
+    const data = await res.json()
+    courseOptions.value = data
+  } catch (err) {
+    message.value = '❌ 課程資料載入失敗'
+  }
+})
+
+// 根據 course_id 設定對應的 course_name
+function updateCourseName(index) {
+  const selected = courseOptions.value.find(c => c.id == courseList.value[index].course_id)
+  courseList.value[index].course_name = selected ? selected.name : '❌ 查無此課程'
+}
+
+// 新增一筆選課
 function addCourse() {
   courseList.value.push({
     course_id: '',
@@ -57,41 +86,28 @@ function addCourse() {
   })
 }
 
+// 移除一筆課程
 function removeCourse(index) {
   courseList.value.splice(index, 1)
 }
 
-async function fetchCourseName(index) {
-  const id = courseList.value[index].course_id
-  if (!id) return
-
-  try {
-    const res = await fetch(`http://localhost:3000/api/courses/${id}`)
-    if (!res.ok) throw new Error()
-    const data = await res.json()
-    courseList.value[index].course_name = data.name
-  } catch {
-    courseList.value[index].course_name = '❌ 查無此課程'
-  }
-}
-
+// 送出選課清單
 async function submitCourses() {
   if (!studentId.value || courseList.value.length === 0) {
-    message.value = '❌ 登入失效或無選課內容'
+    message.value = '❌ 登入失效或沒有選課內容'
     return
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/students/${studentId.value}/courses`, {
+    const res = await fetch(`http://localhost:3000/students/${studentId.value}/courses`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(courseList.value)
     })
-
-    const result = await response.json()
-    message.value = response.ok ? `✅ 成功：${result.message}` : `❌ 錯誤：${result.error}`
-  } catch (err) {
-    message.value = '❌ 錯誤：伺服器無回應'
+    const result = await res.json()
+    message.value = res.ok ? `✅ 成功：${result.message}` : `❌ 錯誤：${result.error}`
+  } catch {
+    message.value = '❌ 提交失敗，伺服器未回應'
   }
 }
 </script>
@@ -113,5 +129,8 @@ async function submitCourses() {
 input[disabled] {
   background-color: #eee;
   color: #666;
+}
+button {
+  margin-top: 10px;
 }
 </style>
