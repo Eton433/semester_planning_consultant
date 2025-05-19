@@ -22,6 +22,25 @@ const addStudentCourses = async (req, res) => {
   }
 };
 
+const getStudentCourses = async (req, res) => {
+  const studentId = req.params.id
+
+  try {
+    const [rows] = await db.promise().query(`
+      SELECT s.course_id, c.course_name, s.semester, s.expected_grade, s.estimated_study_hours
+      FROM Student_Course_Selection s
+      JOIN course c ON s.course_id = c.course_id
+      WHERE s.student_id = ?
+    `, [studentId])
+
+    res.json(rows)
+  } catch (err) {
+    console.error('查詢選課失敗:', err)
+    res.status(500).json({ error: '查詢選課失敗' })
+  }
+}
+
 module.exports = {
-  addStudentCourses
+  addStudentCourses,
+  getStudentCourses  // ✅ 把這個也匯出
 };

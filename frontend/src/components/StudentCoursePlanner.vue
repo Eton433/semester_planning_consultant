@@ -4,21 +4,30 @@
 
     <h3>選課資訊</h3>
     <div v-for="(course, index) in courseList" :key="index" class="course-block">
-      <label>課程代碼：
-        <input v-model="course.course_id" type="number" @blur="fetchCourseName(index)" />
+      <label>課程選擇：
+        <!-- ✅ 只顯示一個 select -->
+        <select v-model="course.course_id" @change="onCourseSelected(index)">
+          <option disabled value="">請選擇課程</option>
+          <option v-for="c in allCourses" :key="c.course_id" :value="c.course_id">
+            {{ c.course_id }} - {{ c.course_name }}
+          </option>
+        </select>
       </label>
-      <label>課程名稱：
-        <input :value="course.course_name" disabled />
-      </label>
+
+      <!-- 🛑 已移除課程名稱 input -->
+
       <label>學期：
         <input v-model="course.semester" placeholder="如 2025-1" />
       </label>
+
       <label>期望成績：
         <input v-model="course.expected_grade" type="number" />
       </label>
+
       <label>預估讀書時數：
         <input v-model="course.estimated_study_hours" type="number" />
       </label>
+
       <button @click="removeCourse(index)">移除</button>
     </div>
 
@@ -26,24 +35,52 @@
     <br /><br />
     <button @click="submitCourses">📤 提交選課</button>
 
-    <div v-if="message" :style="{ marginTop: '20px' }">
+    <div v-if="message" style="margin-top: 20px;">
       <strong>{{ message }}</strong>
+    </div>
+
+    <!-- ✅ 已選課清單 -->
+    <div v-if="existingCourses.length > 0" style="margin-top: 40px;">
+      <h3>📚 已選課清單</h3>
+      <table border="1" cellpadding="8" style="border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>課程代碼</th>
+            <th>課程名稱</th>
+            <th>學期</th>
+            <th>期望成績</th>
+            <th>預估時數</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="course in existingCourses" :key="course.course_id">
+            <td>{{ course.course_id }}</td>
+            <td>{{ course.course_name }}</td>
+            <td>{{ course.semester }}</td>
+            <td>{{ course.expected_grade }}</td>
+            <td>{{ course.estimated_study_hours }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const studentId = ref(localStorage.getItem('student_id') || '')
 const message = ref('')
+const allCourses = ref([])
+const existingCourses = ref([])
+
 const courseList = ref([
   {
-    course_id: 306009001,
+    course_id: '',
     course_name: '',
-    semester: '2025-1',
-    expected_grade: 85,
-    estimated_study_hours: 5
+    semester: '',
+    expected_grade: '',
+    estimated_study_hours: ''
   }
 ])
 
@@ -61,17 +98,31 @@ function removeCourse(index) {
   courseList.value.splice(index, 1)
 }
 
-async function fetchCourseName(index) {
-  const id = courseList.value[index].course_id
-  if (!id) return
+function onCourseSelected(index) {
+  const selectedId = courseList.value[index].course_id
+  const course = allCourses.value.find(c => c.course_id == selectedId)
+  if (course) {
+    courseList.value[index].course_name = course.name // 儲存下來供後端使用
+  }
+}
+
+async function fetchAllCourses() {
+  try {
+    const res = await fetch('http://localhost:3000/api/courses')
+    allCourses.value = await res.json()
+  } catch (err) {
+    console.error('❌ 載入課程清單失敗', err)
+  }
+}
+
+async function fetchExistingCourses() {
+  if (!studentId.value) return
 
   try {
-    const res = await fetch(`http://localhost:3000/api/courses/${id}`)
-    if (!res.ok) throw new Error()
-    const data = await res.json()
-    courseList.value[index].course_name = data.name
-  } catch {
-    courseList.value[index].course_name = '❌ 查無此課程'
+    const res = await fetch(`http://localhost:3000/students/${studentId.value}/courses/list`)
+    existingCourses.value = await res.json()
+  } catch (err) {
+    console.error('❌ 載入已選課失敗', err)
   }
 }
 
@@ -89,11 +140,24 @@ async function submitCourses() {
     })
 
     const result = await response.json()
-    message.value = response.ok ? `✅ 成功：${result.message}` : `❌ 錯誤：${result.error}`
+    if (response.ok) {
+      message.value = `✅ 成功：${result.message}`
+      courseList.value = [] // 清空填寫區
+      await fetchExistingCourses()
+    } else {
+      message.value = `❌ 錯誤：${result.error}`
+    }
   } catch (err) {
     message.value = '❌ 錯誤：伺服器無回應'
   }
 }
+
+onMounted(() => {
+  if (studentId.value) {
+    fetchExistingCourses()
+  }
+  fetchAllCourses()
+})
 </script>
 
 <style scoped>
@@ -109,9 +173,5 @@ async function submitCourses() {
 .course-block label {
   display: block;
   margin: 5px 0;
-}
-input[disabled] {
-  background-color: #eee;
-  color: #666;
 }
 </style>
