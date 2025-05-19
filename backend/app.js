@@ -8,6 +8,9 @@ const abilityRoutes = require('./routes/ability.route');
 const participateRoutes = require('./routes/participate.route');
 const app = express();
 const authRoutes = require('./routes/auth.route');
+const studentAbilityRoutes = require('./routes/studentAbility.route');
+
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -16,6 +19,7 @@ app.use('/students', studentRoutes); // 非常關鍵：URL prefix 是 /students
 app.use('/abilities', abilityRoutes);
 app.use('/clubs', participateRoutes);
 app.use('/auth', authRoutes);
+app.use('/api', studentAbilityRoutes);
 // 測試首頁路由
 app.get('/', (req, res) => {
   res.send('Semester Planning Consultant Backend is running!');
