@@ -6,7 +6,9 @@
       <router-link to="/abilities">🧠 能力管理</router-link>
       <router-link to="/clubs">🎽 社團活動</router-link>
       <router-link to="/performance">📊 課程成績</router-link>
+      <router-link to="/timeplan">⏰ Time Plan</router-link>
       <router-link to="/Login">🚪 登出</router-link>
+      
     </nav>
 
     <router-view />

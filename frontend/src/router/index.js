@@ -5,6 +5,7 @@ import AbilityManager from '../components/AbilityManager.vue'
 import Dashboard from '../components/Dashboard.vue'
 import StudentClubPage from '../components/StudentClubPage.vue'
 import PerformanceInput from '../components/PerformanceInput.vue'
+import TimePlanView from '../components/TimePlanView.vue';
 
 
 const routes = [
@@ -33,9 +34,14 @@ const routes = [
     component: StudentClubPage
   },
   { path: '/performance', 
-    component: PerformanceInput }
-
+    component: PerformanceInput },
+    {
+      path: '/timeplan',
+      component: TimePlanView
+    }
+    
 ]
+
 
 
 const router = createRouter({

@@ -10,7 +10,8 @@ const app = express();
 const authRoutes = require('./routes/auth.route');
 const studentAbilityRoutes = require('./routes/studentAbility.route');
 const performanceRoutes = require('./routes/performance.route');
-
+const timePlanRoutes = require('./routes/timePlan.route');
+app.use('/api/time-plan', timePlanRoutes);
 
 
 // Middleware
