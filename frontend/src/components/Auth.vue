@@ -1,27 +1,44 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
 const username = ref('')
 const password = ref('')
-const message = ref('')
+const message  = ref('')
+
 const router = useRouter()
+const route  = useRoute()
+
+/* ✅ 監聽 query 參數，決定是否顯示「請先登入」 */
+watch(
+  () => route.query.reason,
+  (reason) => {
+    message.value = reason === 'login_required'
+      ? '⚠️ 請先登入才能使用系統'
+      : ''
+  },
+  { immediate: true }   // → 元件一掛載就先跑一次
+)
 
 const login = async () => {
   try {
-    const res = await axios.post('http://localhost:3000/auth/login', {
+    const { data } = await axios.post('http://localhost:3000/auth/login', {
       username: username.value,
       password: password.value
     })
 
-    message.value = res.data.message || '登入成功！'
-    console.log('✅ 登入成功：', res.data.user)
-     localStorage.setItem('student_id', res.data.user.student_id)
-
-    router.push('/dashboard')
+    const student = data.user
+    if (student?.student_id) {
+      localStorage.setItem('student_id', student.student_id)
+      message.value = '✅ 登入成功'
+      router.push('/dashboard')
+    } else {
+      message.value = '❌ 登入失敗：找不到使用者資訊'
+    }
   } catch (err) {
-    message.value = '登入失敗：' + (err.response?.data?.message || err.message)
+    message.value =
+      '❌ 登入失敗：' + (err.response?.data?.message || err.message)
   }
 }
 </script>
@@ -36,7 +53,7 @@ const login = async () => {
       <button @click="login">登入</button>
     </div>
 
-    <p class="message">{{ message }}</p>
+    <p class="message" v-if="message">{{ message }}</p>
   </div>
 </template>
 
@@ -72,7 +89,6 @@ input {
   background-color: #fff;
   transition: border-color 0.3s;
 }
-
 input:focus {
   outline: none;
   border-color: #4285f4;
@@ -88,14 +104,18 @@ button {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 button:hover {
   background-color: #3367d6;
 }
 
 .message {
   margin-top: 1rem;
-  color: #d93025;
+  color: #856404;
+  background-color: #fff3cd;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ffeeba;
+  border-radius: 8px;
   font-weight: bold;
+  text-align: center;
 }
 </style>

@@ -7,8 +7,8 @@ import StudentClubPage from '../components/StudentClubPage.vue'
 import PerformanceInput from '../components/PerformanceInput.vue'
 import TimePlanView from '../components/TimePlanView.vue';
 
-
 const routes = [
+
   {
     path: '/',
     redirect: '/login'  // ← 這裡改成導向 login
@@ -44,9 +44,25 @@ const routes = [
 
 
 
+
+
+
 const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem('student_id')
+
+  if (to.path !== '/login' && !isAuthenticated) {
+    next({ path: '/login', query: { reason: 'login_required' } })
+  } else if (to.path === '/login' && isAuthenticated) {
+    next('/dashboard')
+  } else {
+    next()
+  }
+})
+
 
 export default router

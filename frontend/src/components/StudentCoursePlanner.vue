@@ -1,64 +1,52 @@
 <template>
-  <div class="container">
-    <h2>學生選課規劃</h2>
+  <div class="card p-4">
+    <h3>輸入課程成績</h3>
 
-    <h3>選課資訊</h3>
-    <div v-for="(course, index) in courseList" :key="index" class="course-block">
-      <label>課程選擇：
-        <!-- ✅ 只顯示一個 select -->
-        <select v-model="course.course_id" @change="onCourseSelected(index)">
-          <option disabled value="">請選擇課程</option>
-          <option v-for="c in allCourses" :key="c.course_id" :value="c.course_id">
-            {{ c.course_id }} - {{ c.course_name }}
-          </option>
-        </select>
-      </label>
-
-      <!-- 🛑 已移除課程名稱 input -->
-
-      <label>學期：
-        <input v-model="course.semester" placeholder="如 2025-1" />
-      </label>
-
-      <label>期望成績：
-        <input v-model="course.expected_grade" type="number" />
-      </label>
-
-      <label>預估讀書時數：
-        <input v-model="course.estimated_study_hours" type="number" />
-      </label>
-
-      <button @click="removeCourse(index)">移除</button>
+    <!-- 選課 -->
+    <div class="mb-3">
+      <label class="form-label">選擇課程</label>
+      <select v-model="selectedCourse">
+        <option disabled value="">請選擇課程</option>
+        <option
+          v-for="c in courses"
+          :key="c.course_id"
+          :value="c.course_id"
+        >
+          {{ `${c.course_id} - ${c.course_name}` }}
+        </option>
+      </select>
     </div>
 
-    <button @click="addCourse">➕ 新增一筆課程</button>
-    <br /><br />
-    <button @click="submitCourses">📤 提交選課</button>
-
-    <div v-if="message" style="margin-top: 20px;">
-      <strong>{{ message }}</strong>
+    <!-- 分數 -->
+    <div class="mb-3">
+      <label class="form-label">輸入分數</label>
+      <input type="number" v-model="score" class="form-control" />
     </div>
 
-    <!-- ✅ 已選課清單 -->
-    <div v-if="existingCourses.length > 0" style="margin-top: 40px;">
-      <h3>📚 已選課清單</h3>
-      <table border="1" cellpadding="8" style="border-collapse: collapse;">
+    <button @click="submitPerformance" class="btn btn-primary">提交</button>
+
+    <!-- 提示 -->
+    <div v-if="successMessage" class="alert alert-success mt-3">
+      {{ successMessage }}
+    </div>
+    <div v-if="errorMessage" class="alert alert-danger mt-3">
+      {{ errorMessage }}
+    </div>
+
+    <!-- 已填成績 -->
+    <div class="mt-5">
+      <h4>📋 已填成績</h4>
+      <table class="table table-bordered mt-2">
         <thead>
           <tr>
-            <th>課程代碼</th>
-            <th>課程名稱</th>
-            <th>學期</th>
-            <th>期望成績</th>
-            <th>預估時數</th>
+            <th>課程代碼</th><th>課程名稱</th><th>成績</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="course in existingCourses" :key="course.course_id">
-            <td>{{ course.course_id }}</td>
-            <td>{{ course.course_name }}</td>
-            <td>{{ course.semester }}</td>
-            <td>{{ course.expected_grade }}</td>
-            <td>{{ course.estimated_study_hours }}</td>
+          <tr v-for="r in performanceRecords" :key="r.course_id">
+            <td>{{ r.course_id }}</td>
+            <td>{{ r.course_name }}</td>
+            <td>{{ r.course_score }}</td>
           </tr>
         </tbody>
       </table>
@@ -68,110 +56,69 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-const studentId = ref(localStorage.getItem('student_id') || '')
-const message = ref('')
-const allCourses = ref([])
-const existingCourses = ref([])
+const courses            = ref([])
+const selectedCourse     = ref('')
+const score              = ref('')
+const successMessage     = ref('')
+const errorMessage       = ref('')
+const performanceRecords = ref([])
 
-const courseList = ref([
-  {
-    course_id: '',
-    course_name: '',
-    semester: '',
-    expected_grade: '',
-    estimated_study_hours: ''
-  }
-])
+const student_id = localStorage.getItem('student_id')
 
-function addCourse() {
-  courseList.value.push({
-    course_id: '',
-    course_name: '',
-    semester: '',
-    expected_grade: '',
-    estimated_study_hours: ''
-  })
+// ---------- API ----------
+const fetchCourses = async () => {
+  const res = await axios.get('http://localhost:3000/api/courses')
+  courses.value = res.data                              // ✅ 寫進 courses
 }
 
-function removeCourse(index) {
-  courseList.value.splice(index, 1)
+const fetchPerformance = async () => {
+  const res = await axios.get(
+    `http://localhost:3000/api/performance/${student_id}`
+  )
+  performanceRecords.value = res.data
 }
 
-function onCourseSelected(index) {
-  const selectedId = courseList.value[index].course_id
-  const course = allCourses.value.find(c => c.course_id == selectedId)
-  if (course) {
-    courseList.value[index].course_name = course.name // 儲存下來供後端使用
-  }
-}
-
-async function fetchAllCourses() {
+// ---------- lifecycle ----------
+onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:3000/api/courses')
-    allCourses.value = await res.json()
-  } catch (err) {
-    console.error('❌ 載入課程清單失敗', err)
+    await fetchCourses()
+    await fetchPerformance()
+  } catch (e) {
+    console.error('初始化失敗:', e)
   }
-}
+})
 
-async function fetchExistingCourses() {
-  if (!studentId.value) return
-
-  try {
-    const res = await fetch(`http://localhost:3000/students/${studentId.value}/courses/list`)
-    existingCourses.value = await res.json()
-  } catch (err) {
-    console.error('❌ 載入已選課失敗', err)
-  }
-}
-
-async function submitCourses() {
-  if (!studentId.value || courseList.value.length === 0) {
-    message.value = '❌ 登入失效或無選課內容'
+// ---------- submit ----------
+const submitPerformance = async () => {
+  if (!selectedCourse.value || !score.value) {
+    errorMessage.value = '請填寫完整資訊'
+    successMessage.value = ''
     return
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/students/${studentId.value}/courses`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(courseList.value)
+    await axios.post('http://localhost:3000/api/performance', {
+      student_id,
+      course_id: selectedCourse.value,
+      course_score: score.value
     })
-
-    const result = await response.json()
-    if (response.ok) {
-      message.value = `✅ 成功：${result.message}`
-      courseList.value = [] // 清空填寫區
-      await fetchExistingCourses()
-    } else {
-      message.value = `❌ 錯誤：${result.error}`
-    }
-  } catch (err) {
-    message.value = '❌ 錯誤：伺服器無回應'
+    successMessage.value = '成績上傳成功！'
+    errorMessage.value = ''
+    selectedCourse.value = ''
+    score.value = ''
+    await fetchPerformance()
+    setTimeout(() => (successMessage.value = ''), 3000)
+  } catch (e) {
+    console.error('上傳失敗:', e)
+    errorMessage.value = '成績上傳失敗'
+    successMessage.value = ''
   }
 }
-
-onMounted(() => {
-  if (studentId.value) {
-    fetchExistingCourses()
-  }
-  fetchAllCourses()
-})
 </script>
 
 <style scoped>
-.container {
-  padding: 20px;
-  font-family: Arial;
-}
-.course-block {
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  padding: 10px;
-}
-.course-block label {
-  display: block;
-  margin: 5px 0;
-}
+.card { max-width: 800px; margin: auto; }
+select { padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; color:#000; }
 </style>
