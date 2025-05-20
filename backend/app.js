@@ -9,6 +9,8 @@ const participateRoutes = require('./routes/participate.route');
 const app = express();
 const authRoutes = require('./routes/auth.route');
 const studentAbilityRoutes = require('./routes/studentAbility.route');
+const performanceRoutes = require('./routes/performance.route');
+
 
 
 // Middleware
@@ -20,6 +22,7 @@ app.use('/abilities', abilityRoutes);
 app.use('/clubs', participateRoutes);
 app.use('/auth', authRoutes);
 app.use('/api', studentAbilityRoutes);
+app.use('/api/performance', performanceRoutes);
 // 測試首頁路由
 app.get('/', (req, res) => {
   res.send('Semester Planning Consultant Backend is running!');

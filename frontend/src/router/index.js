@@ -4,6 +4,8 @@ import StudentCoursePlanner from '../components/StudentCoursePlanner.vue'
 import AbilityManager from '../components/AbilityManager.vue'
 import Dashboard from '../components/Dashboard.vue'
 import StudentClubPage from '../components/StudentClubPage.vue'
+import PerformanceInput from '../components/PerformanceInput.vue'
+
 
 const routes = [
   {
@@ -29,7 +31,10 @@ const routes = [
   {
     path: '/clubs',
     component: StudentClubPage
-  }
+  },
+  { path: '/performance', 
+    component: PerformanceInput }
+
 ]
 
 
