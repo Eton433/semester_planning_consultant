@@ -56,11 +56,14 @@
   const performanceRecords = ref([])
   const student_id = localStorage.getItem('student_id')
   
-  const fetchCourses = async () => {
-    const res = await axios.get('/api/courses')
-    courses.value = res.data
+  async function fetchCourses() {
+  try {
+    const res = await fetch('http://localhost:3000/api/courses')
+    courses.value = await res.json()
+  } catch (err) {
+    console.error('❌ 載入課程清單失敗', err)
   }
-  
+}
   const fetchPerformance = async () => {
     const res = await axios.get(`/api/performance/${student_id}`)
     performanceRecords.value = res.data
