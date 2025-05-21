@@ -1,15 +1,13 @@
 const db = require('../config/db');
 
-exports.getAllCourses = (req, res) => {
-  const sql = 'SELECT * FROM course';
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error('❌ Failed to fetch courses:', err);
-      return res.status(500).json({ error: '資料讀取失敗' });
-    }
-    res.json(results);
-  });
+exports.getAllCourses = async (req, res) => {
+  try {
+    const [rows] = await db.promise().query('SELECT * FROM course');
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Failed to fetch courses:', err); // Or a more generic message
+    res.status(500).json({ error: '資料讀取失敗' }); // Or a more generic message
+  }
 };
 exports.getCourseById = async (req, res) => {
   const courseId = req.params.id;

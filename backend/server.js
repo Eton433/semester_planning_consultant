@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './backend/.env' }); // 確保加這行
+require('dotenv').config();
 const app = require('./app');
 
 console.log("🕵️‍♂️ process.env.PORT =", process.env.PORT); // ← 加這行看看結果
