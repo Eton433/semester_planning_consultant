@@ -18,10 +18,10 @@ app.use('/api/time-plan', timePlanRoutes);
 app.use(cors());
 app.use(express.json());
 app.use('/api/courses', courseRoutes);
-app.use('/students', studentRoutes); // 非常關鍵：URL prefix 是 /students
-app.use('/abilities', abilityRoutes);
-app.use('/clubs', participateRoutes);
-app.use('/auth', authRoutes);
+app.use('/api/students', studentRoutes); // 非常關鍵：URL prefix 是 /students
+app.use('/api/abilities', abilityRoutes);
+app.use('/api/clubs', participateRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api', studentAbilityRoutes);
 app.use('/api/performance', performanceRoutes);
 // 測試首頁路由
