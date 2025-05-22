@@ -10,9 +10,10 @@ const app = express();
 const authRoutes = require('./routes/auth.route');
 const studentAbilityRoutes = require('./routes/studentAbility.route');
 const performanceRoutes = require('./routes/performance.route');
-const timePlanRoutes = require('./routes/timePlan.route');
-app.use('/api/time-plan', timePlanRoutes);
 
+
+const timePlanRoutes = require('./routes/timePlan.route')
+app.use('/api', timePlanRoutes)   // → 最終完整網址：/api/time-plan/:id
 
 // Middleware
 app.use(cors());
