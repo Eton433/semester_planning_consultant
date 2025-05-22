@@ -23,7 +23,7 @@ watch(
 
 const login = async () => {
   try {
-    const { data } = await axios.post('http://localhost:3000/auth/login', {
+    const { data } = await axios.post('http://localhost:3000/api/auth/login', {
       username: username.value,
       password: password.value
     })

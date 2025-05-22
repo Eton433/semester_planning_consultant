@@ -103,8 +103,8 @@ const totalHours = computed(() => joined.value.reduce((sum, c) => sum + c.weekly
 const fetchAll = async () => {
   try {
     const [clubsRes, joinedRes] = await Promise.all([
-      fetch(`http://localhost:3000/clubs/activities`),
-      fetch(`http://localhost:3000/clubs/${studentId.value}/activities/list`)
+      fetch(`http://localhost:3000/api/clubs/activities`),
+      fetch(`http://localhost:3000/api/clubs/${studentId.value}/activities/list`)
     ])
     clubList.value = await clubsRes.json()
     joined.value = await joinedRes.json()
@@ -116,7 +116,7 @@ const fetchAll = async () => {
 
 const submit = async () => {
   try {
-    const res = await fetch(`http://localhost:3000/clubs/${studentId.value}/activities`, {
+    const res = await fetch(`http://localhost:3000/api/clubs/${studentId.value}/activities`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(selected.value)
