@@ -1,46 +1,45 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import axios from "axios";
 
-const username = ref('')
-const password = ref('')
-const message  = ref('')
+const username = ref("");
+const password = ref("");
+const message = ref("");
 
-const router = useRouter()
-const route  = useRoute()
+const router = useRouter();
+const route = useRoute();
 
 /* ✅ 監聽 query 參數，決定是否顯示「請先登入」 */
 watch(
   () => route.query.reason,
   (reason) => {
-    message.value = reason === 'login_required'
-      ? '⚠️ 請先登入才能使用系統'
-      : ''
+    message.value =
+      reason === "login_required" ? "⚠️ 請先登入才能使用系統" : "";
   },
-  { immediate: true }   // → 元件一掛載就先跑一次
-)
+  { immediate: true } // → 元件一掛載就先跑一次
+);
 
 const login = async () => {
   try {
-    const { data } = await axios.post('http://localhost:3000/api/auth/login', {
-      username: username.value,
-      password: password.value
-    })
+    const { data } = await axios.post("http://localhost:3000/api/auth/login", {
+      student_id: username.value,
+      password: password.value,
+    });
 
-    const student = data.user
+    const student = data.user;
     if (student?.student_id) {
-      localStorage.setItem('student_id', student.student_id)
-      message.value = '✅ 登入成功'
-      router.push('/dashboard')
+      localStorage.setItem("student_id", student.student_id);
+      message.value = "✅ 登入成功";
+      router.push("/dashboard");
     } else {
-      message.value = '❌ 登入失敗：找不到使用者資訊'
+      message.value = "❌ 登入失敗：找不到使用者資訊";
     }
   } catch (err) {
     message.value =
-      '❌ 登入失敗：' + (err.response?.data?.message || err.message)
+      "❌ 登入失敗：" + (err.response?.data?.message || err.message);
   }
-}
+};
 </script>
 
 <template>
@@ -55,10 +54,10 @@ const login = async () => {
         <form @submit.prevent="login" class="login-form">
           <div class="form-group">
             <label class="form-label">使用者名稱：</label>
-            <input 
-              v-model="username" 
-              placeholder="請輸入使用者名稱" 
-              required 
+            <input
+              v-model="username"
+              placeholder="請輸入使用者名稱"
+              required
               class="form-input"
               autocomplete="username"
             />
@@ -66,11 +65,11 @@ const login = async () => {
 
           <div class="form-group">
             <label class="form-label">密碼：</label>
-            <input 
-              v-model="password" 
-              type="password" 
-              placeholder="請輸入密碼" 
-              required 
+            <input
+              v-model="password"
+              type="password"
+              placeholder="請輸入密碼"
+              required
               class="form-input"
               autocomplete="current-password"
             />
@@ -81,11 +80,15 @@ const login = async () => {
           </button>
         </form>
 
-        <div v-if="message" class="message" :class="{ 
-          success: message.includes('✅'), 
-          error: message.includes('❌'),
-          warning: message.includes('⚠️')
-        }">
+        <div
+          v-if="message"
+          class="message"
+          :class="{
+            success: message.includes('✅'),
+            error: message.includes('❌'),
+            warning: message.includes('⚠️'),
+          }"
+        >
           {{ message }}
         </div>
       </div>
@@ -105,7 +108,7 @@ const login = async () => {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,7 +133,7 @@ const login = async () => {
 }
 
 .header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -232,13 +235,18 @@ const login = async () => {
 }
 
 .submit-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -306,27 +314,28 @@ const login = async () => {
   .app-background {
     padding: 10px;
   }
-  
+
   .container {
     max-width: 350px;
   }
-  
-  .form-section, .footer-section {
+
+  .form-section,
+  .footer-section {
     padding: 20px;
   }
-  
+
   .login-form {
     padding: 20px;
   }
-  
+
   .title {
     font-size: 1.8em;
   }
-  
+
   .subtitle {
     font-size: 1em;
   }
-  
+
   .header {
     padding: 30px 20px;
   }

@@ -3,7 +3,7 @@
       <div class="container">
         <div class="header">
           <h2 class="title">⏰ 學生時間規劃</h2>
-          <div class="student-info">學生 ID: {{ studentId }}</div>
+          
         </div>
   
         <!-- 平均成績卡片 -->
@@ -77,7 +77,7 @@
   import { ref, onMounted } from 'vue';
   import axios from 'axios';
   
-  const studentId = 112306055;
+  const studentId = {studentId};
   const avgScore = ref(0);
   const courseReviewTimes = ref({});
   const activities = ref([]);

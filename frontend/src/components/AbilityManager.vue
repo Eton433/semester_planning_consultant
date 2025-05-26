@@ -1,60 +1,81 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-
+import { ref, onMounted } from "vue";
+const abilities = ref([]);
 // ✅ 從 localStorage 拿到目前登入者的 student_id
-const studentId = localStorage.getItem('student_id')
+const studentId = localStorage.getItem("student_id");
 
-const abilities = ref([])
+const studentAbilities = ref([]);
+
 const newAbility = ref({
   ability_id: null,
-  description: '',
-  ability_level: 1
-})
-const message = ref('')
+  description: "",
+  ability_level: 1,
+});
+const message = ref("");
 
 const fetchAbilities = async () => {
   try {
-    const res = await fetch('http://localhost:3000/abilities')
-    const data = await res.json()
-    abilities.value = data
-    console.log('✅ 能力清單載入成功:', data)
+    const res = await fetch("http://localhost:3000/api/abilities");
+    const data = await res.json();
+    abilities.value = data;
+    console.log("✅ 能力清單載入成功:", data);
   } catch (err) {
-    message.value = '❌ 載入能力列表失敗'
+    message.value = "❌ 載入能力列表失敗";
   }
-}
+};
 
 const createStudentAbility = async () => {
   const payload = {
     student_id: studentId,
     ability_id: Number(newAbility.value.ability_id),
     ability_level: newAbility.value.ability_level,
-    description: newAbility.value.description
-  }
+    description: newAbility.value.description,
+  };
 
-  console.log('📤 送出的資料:', payload)
+  console.log("📤 送出的資料:", payload);
 
   try {
-    const res = await fetch('http://localhost:3000/api/student-ability', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
+    const res = await fetch("http://localhost:3000/api/student-ability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-    const result = await res.json()
+    const result = await res.json();
 
     if (res.ok) {
-      message.value = '✅ 儲存成功'
-      await fetchAbilities()
-      newAbility.value = { ability_id: null, description: '', ability_level: 1 }
+      message.value = "✅ 儲存成功";
+      await fetchStudentAbilities();
+      newAbility.value = {
+        ability_id: null,
+        description: "",
+        ability_level: 1,
+      };
     } else {
-      message.value = `❌ 錯誤：${result.error}`
+      message.value = `❌ 錯誤：${result.error}`;
     }
   } catch (err) {
-    message.value = '❌ 無法與伺服器連線'
+    message.value = "❌ 無法與伺服器連線";
   }
-}
+};
 
-onMounted(fetchAbilities)
+const fetchStudentAbilities = async () => {
+  try {
+    const res = await fetch(
+      `http://localhost:3000/api/student-abilities/${studentId}`
+    );
+    const data = await res.json();
+    studentAbilities.value = data.abilities;
+    console.log("📘 學生能力清單:", data);
+  } catch (err) {
+    console.error("❌ 無法載入學生能力", err);
+  }
+};
+
+onMounted(() => {
+  fetchAbilities();
+  fetchStudentAbilities();
+});
 </script>
 
 <template>
@@ -68,9 +89,17 @@ onMounted(fetchAbilities)
         <form @submit.prevent="createStudentAbility" class="ability-form">
           <div class="form-group">
             <label class="form-label">選擇能力：</label>
-            <select v-model.number="newAbility.ability_id" required class="form-select">
+            <select
+              v-model.number="newAbility.ability_id"
+              required
+              class="form-select"
+            >
               <option disabled value="">請選擇</option>
-              <option v-for="a in abilities" :key="a.ability_id" :value="a.ability_id">
+              <option
+                v-for="a in abilities"
+                :key="a.ability_id"
+                :value="a.ability_id"
+              >
                 {{ a.ability_name }}
               </option>
             </select>
@@ -78,12 +107,22 @@ onMounted(fetchAbilities)
 
           <div class="form-group">
             <label class="form-label">說明：</label>
-            <input v-model="newAbility.description" placeholder="自訂說明" class="form-input" />
+            <input
+              v-model="newAbility.description"
+              placeholder="自訂說明"
+              class="form-input"
+            />
           </div>
 
           <div class="form-group">
             <label class="form-label">能力等級（1~5）：</label>
-            <input type="number" v-model.number="newAbility.ability_level" min="1" max="5" class="form-input" />
+            <input
+              type="number"
+              v-model.number="newAbility.ability_level"
+              min="1"
+              max="5"
+              class="form-input"
+            />
           </div>
 
           <button type="submit" class="submit-btn">
@@ -91,17 +130,28 @@ onMounted(fetchAbilities)
           </button>
         </form>
 
-        <div v-if="message" class="message" :class="{ success: message.includes('✅'), error: message.includes('❌') }">
+        <div
+          v-if="message"
+          class="message"
+          :class="{
+            success: message.includes('✅'),
+            error: message.includes('❌'),
+          }"
+        >
           {{ message }}
         </div>
       </div>
 
       <div class="abilities-section">
         <div class="section-header">
-          <h3 class="section-title">📋 能力清單</h3>
+          <h3 class="section-title">📋 你已提交的能力</h3>
         </div>
         <div class="abilities-grid">
-          <div v-for="a in abilities" :key="a.ability_id" class="ability-card">
+          <div
+            v-for="a in studentAbilities"
+            :key="a.ability_id"
+            class="ability-card"
+          >
             <div class="ability-name">{{ a.ability_name }}</div>
             <div class="ability-level">等級 {{ a.ability_level }}</div>
             <div class="ability-description">{{ a.description }}</div>
@@ -117,7 +167,7 @@ onMounted(fetchAbilities)
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .container {
@@ -139,7 +189,7 @@ onMounted(fetchAbilities)
 }
 
 .header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -184,7 +234,8 @@ onMounted(fetchAbilities)
   font-size: 1.1em;
 }
 
-.form-input, .form-select {
+.form-input,
+.form-select {
   width: 100%;
   padding: 14px 16px;
   border: 2px solid #e2e8f0;
@@ -195,7 +246,8 @@ onMounted(fetchAbilities)
   box-sizing: border-box;
 }
 
-.form-input:focus, .form-select:focus {
+.form-input:focus,
+.form-select:focus {
   outline: none;
   border-color: #4facfe;
   box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
@@ -237,13 +289,18 @@ onMounted(fetchAbilities)
 }
 
 .submit-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -308,7 +365,7 @@ onMounted(fetchAbilities)
 }
 
 .ability-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -362,19 +419,20 @@ onMounted(fetchAbilities)
   .app-background {
     padding: 10px;
   }
-  
-  .form-section, .abilities-section {
+
+  .form-section,
+  .abilities-section {
     padding: 20px;
   }
-  
+
   .ability-form {
     padding: 20px;
   }
-  
+
   .abilities-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .title {
     font-size: 1.8em;
   }
