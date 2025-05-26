@@ -2,28 +2,24 @@
   <div class="app-background">
     <div class="container">
       <div class="header">
-        <h2 class="title">📊 輸入課程成績</h2>
-        <div class="subtitle">管理您的學習成果</div>
+        <h2 class="title">📘 學生選課與預期成績</h2>
+        <div class="subtitle">規劃您希望達成的學習成果</div>
       </div>
 
       <div class="form-section">
-        <form @submit.prevent="submitPerformance" class="grade-form">
+        <form @submit.prevent="submitSelection" class="grade-form">
           <div class="form-group">
             <label class="form-label">選擇課程：</label>
             <select v-model="selectedCourse" required class="form-select">
               <option disabled value="">請選擇課程</option>
-              <option
-                v-for="c in courses"
-                :key="c.course_id"
-                :value="c.course_id"
-              >
+              <option v-for="c in courses" :key="c.course_id" :value="c.course_id">
                 {{ `${c.course_id} - ${c.course_name}` }}
               </option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">輸入期望分數：</label>
+            <label class="form-label">輸入預期分數：</label>
             <input 
               type="number" 
               v-model="score" 
@@ -36,7 +32,7 @@
           </div>
 
           <button type="submit" class="submit-btn">
-            <span>📝 提交成績</span>
+            <span>📝 提交選課</span>
           </button>
         </form>
 
@@ -56,15 +52,15 @@
               📚 總科目：{{ performanceRecords.length }}
             </span>
             <span class="stat-item">
-              📈 平均分數：{{ averageScore }}
+              📈 平均預期分數：{{ averageScore }}
             </span>
           </div>
         </div>
 
         <div v-if="performanceRecords.length === 0" class="empty-state">
           <div class="empty-icon">📝</div>
-          <h4>尚未填寫任何成績</h4>
-          <p>開始輸入您的課程成績吧！</p>
+          <h4>尚未填寫任何選課</h4>
+          <p>開始規劃您的課程與預期成果吧！</p>
         </div>
 
         <div v-else class="records-grid">
@@ -74,13 +70,13 @@
               <div class="course-name">{{ r.course_name }}</div>
             </div>
             <div class="score-section">
-              <div class="score-value" :class="getScoreClass(r.course_score)">
-                {{ r.course_score }}
+              <div class="score-value" :class="getScoreClass(r.expected_grade)">
+                {{ r.expected_grade }}
               </div>
               <div class="score-label">分</div>
             </div>
-            <div class="grade-badge" :class="getGradeClass(r.course_score)">
-              {{ getGradeLetter(r.course_score) }}
+            <div class="grade-badge" :class="getGradeClass(r.expected_grade)">
+              {{ getGradeLetter(r.expected_grade) }}
             </div>
           </div>
         </div>
@@ -93,47 +89,41 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 
-const courses            = ref([])
-const selectedCourse     = ref('')
-const score              = ref('')
-const successMessage     = ref('')
-const errorMessage       = ref('')
+const courses = ref([])
+const selectedCourse = ref('')
+const score = ref('')
+const successMessage = ref('')
+const errorMessage = ref('')
 const performanceRecords = ref([])
 
 const student_id = localStorage.getItem('student_id')
 
-// 計算平均分數
 const averageScore = computed(() => {
   if (performanceRecords.value.length === 0) return '0'
-  const total = performanceRecords.value.reduce((sum, record) => sum + Number(record.course_score), 0)
+  const total = performanceRecords.value.reduce((sum, record) => sum + Number(record.expected_grade), 0)
   return Math.round(total / performanceRecords.value.length)
 })
 
-// ---------- API ----------
 const fetchCourses = async () => {
   const res = await axios.get('http://localhost:3000/api/courses')
-  courses.value = res.data                              // ✅ 寫進 courses
+  courses.value = res.data
 }
 
-const fetchPerformance = async () => {
-  const res = await axios.get(
-    `http://localhost:3000/api/performance/${student_id}`
-  )
+const fetchSelections = async () => {
+  const res = await axios.get(`http://localhost:3000/api/students/${student_id}/courses/list`)
   performanceRecords.value = res.data
 }
 
-// ---------- lifecycle ----------
 onMounted(async () => {
   try {
     await fetchCourses()
-    await fetchPerformance()
+    await fetchSelections()
   } catch (e) {
     console.error('初始化失敗:', e)
   }
 })
 
-// ---------- submit ----------
-const submitPerformance = async () => {
+const submitSelection = async () => {
   if (!selectedCourse.value || !score.value) {
     errorMessage.value = '❌ 請填寫完整資訊'
     successMessage.value = ''
@@ -149,26 +139,27 @@ const submitPerformance = async () => {
   }
 
   try {
-    await axios.post('http://localhost:3000/api/performance', {
-      student_id,
-      course_id: selectedCourse.value,
-      course_score: score.value
-    })
-    successMessage.value = '✅ 成績上傳成功！'
+    await axios.post(`http://localhost:3000/api/students/${student_id}/courses`, [
+      {
+        course_id: selectedCourse.value,
+        expected_grade: score.value,
+        estimated_study_hours: 5
+      }
+    ])
+    successMessage.value = '✅ 預期成績儲存成功！'
     errorMessage.value = ''
     selectedCourse.value = ''
     score.value = ''
-    await fetchPerformance()
+    await fetchSelections()
     setTimeout(() => (successMessage.value = ''), 3000)
   } catch (e) {
     console.error('上傳失敗:', e)
-    errorMessage.value = '❌ 成績上傳失敗，請稍後再試'
+    errorMessage.value = '❌ 儲存失敗，請稍後再試'
     successMessage.value = ''
     setTimeout(() => (errorMessage.value = ''), 3000)
   }
 }
 
-// 根據分數返回對應的樣式類別
 const getScoreClass = (score) => {
   const numScore = Number(score)
   if (numScore >= 90) return 'excellent'
@@ -178,7 +169,6 @@ const getScoreClass = (score) => {
   return 'fail'
 }
 
-// 根據分數返回等級樣式
 const getGradeClass = (score) => {
   const numScore = Number(score)
   if (numScore >= 90) return 'grade-a'
@@ -188,7 +178,6 @@ const getGradeClass = (score) => {
   return 'grade-f'
 }
 
-// 根據分數返回等級字母
 const getGradeLetter = (score) => {
   const numScore = Number(score)
   if (numScore >= 90) return 'A'
@@ -198,6 +187,7 @@ const getGradeLetter = (score) => {
   return 'F'
 }
 </script>
+
 
 <style scoped>
 .app-background {

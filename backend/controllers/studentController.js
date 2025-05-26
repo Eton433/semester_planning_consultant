@@ -6,12 +6,16 @@ const addStudentCourses = async (req, res) => {
 
   try {
     for (const course of courses) {
-      const { course_id, semester, expected_grade, estimated_study_hours } = course;
+      const { course_id, expected_grade, estimated_study_hours, semester } = course;
 
       await db.promise().query(
-        `INSERT INTO Student_Course_Selection (student_id, course_id, semester, expected_grade, estimated_study_hours)
-         VALUES (?, ?, ?, ?, ?)`,
-        [studentId, course_id, semester, expected_grade, estimated_study_hours]
+        `INSERT INTO student_course_selection (student_id, course_id, expected_grade, estimated_study_hours)
+         VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE 
+           expected_grade = VALUES(expected_grade),
+           estimated_study_hours = VALUES(estimated_study_hours)
+        `,
+        [studentId, course_id, expected_grade, estimated_study_hours, semester]
       );
     }
 
@@ -23,24 +27,24 @@ const addStudentCourses = async (req, res) => {
 };
 
 const getStudentCourses = async (req, res) => {
-  const studentId = req.params.id
+  const studentId = req.params.id;
 
   try {
     const [rows] = await db.promise().query(`
-      SELECT s.course_id, c.course_name, s.semester, s.expected_grade, s.estimated_study_hours
-      FROM Student_Course_Selection s
+      SELECT s.course_id, c.course_name, s.expected_grade, s.estimated_study_hours
+      FROM student_course_selection s
       JOIN course c ON s.course_id = c.course_id
       WHERE s.student_id = ?
-    `, [studentId])
+    `, [studentId]);
 
-    res.json(rows)
+    res.json(rows);
   } catch (err) {
-    console.error('查詢選課失敗:', err)
-    res.status(500).json({ error: '查詢選課失敗' })
+    console.error('查詢選課失敗:', err);
+    res.status(500).json({ error: '查詢選課失敗' });
   }
-}
+};
 
 module.exports = {
   addStudentCourses,
-  getStudentCourses  // ✅ 把這個也匯出
+  getStudentCourses,
 };
