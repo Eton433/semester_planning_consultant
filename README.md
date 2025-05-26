@@ -145,6 +145,7 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
+```
 ## Authentication & Authorization
 
 - LocalStorage-based session.
