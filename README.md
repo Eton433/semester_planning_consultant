@@ -1,210 +1,232 @@
-# semester_planning_consultant
-A web-based system for optimizing students' credit and time allocation.
-# System Architecture
+# Semester_Planning_Consultant
 
-## Overall Architecture
-
-The system is a web application composed of a frontend and a backend.
-
-- **Frontend**: A Single Page Application (SPA) built using Vue.js. It handles all user interactions and renders dynamic views.
-- **Backend**: A Node.js application using the Express.js framework. It serves RESTful APIs for data access and interacts with a MySQL database.
+A web-based system for helping students plan their course loads and time allocation effectively.
 
 ---
 
-## Backend Details
+## System Architecture
 
-The backend is organized into controller and route modules.
+### Overall Architecture
+
+- **Frontend**: A Vue.js-based Single Page Application (SPA) for dynamic and interactive UI.
+- **Backend**: A Node.js application using Express.js for REST API, connected to a MySQL database.
+
+---
+
+## Backend Structure
 
 ### Database
 
-- MySQL is used for persistent data storage.
-- The connection is defined in `backend/config/db.js`.
+- Relational database: **MySQL**
+- Connection config: `backend/config/db.js`
 
-### Controllers (Located in `backend/controllers/`)
+### Controllers (`backend/controllers/`)
 
-- **`ability.controller.js`**
-  - `getAllAbilities`: Fetches all abilities.
-  - `createAbility`: Inserts or updates ability entries in `Student_Ability`.
+- **ability.controller.js**
+  - `getAllAbilities`: Retrieve all abilities.
+  - `createAbility`: Insert/update student's ability.
 
-- **`auth.controller.js`**
-  - `login`: Authenticates students via `student_id` and `password`.
+- **auth.controller.js**
+  - `login`: Authenticate via student ID and password.
 
-- **`course.controller.js`**
-  - `getAllCourses`: Returns all course IDs and names.
-  - `getCourseById`: Returns a single course by ID.
+- **course.controller.js**
+  - `getAllCourses`: Return course list (id and name).
+  - `getCourseById`: Return course details by ID.
 
-- **`participate.controller.js`**
-  - `getAllClubs`: Fetches all available clubs.
-  - `getStudentClubs`: Lists a student’s joined clubs.
-  - `selectClubs`: Adds clubs for a student.
+- **participate.controller.js**
+  - `getAllClubs`: List all clubs.
+  - `getStudentClubs`: Get clubs joined by a student.
+  - `selectClubs`: Submit club participation.
 
-- **`performance.controller.js`**
-  - `getAllCourses`: Lists all courses (for dropdown).
-  - `addPerformance`: Adds or updates performance records.
-  - `getPerformanceByStudent`: Lists a student's performance.
+- **performance.controller.js**
+  - `getAllCourses`: List courses for dropdowns.
+  - `addPerformance`: Add/update student performance.
+  - `getPerformanceByStudent`: Get all scores of a student.
 
-- **`studentAbility.controller.js`**
-  - `addStudentAbility`: Adds a student’s ability level and description.
+- **studentAbility.controller.js**
+  - `addStudentAbility`: Save student ability level and description.
 
-- **`studentController.js`**
-  - `addStudentCourses`: Stores a student's course selections.
-  - `getStudentCourses`: Retrieves a student's selected courses.
+- **studentController.js**
+  - `addStudentCourses`: Submit student’s selected courses.
+  - `getStudentCourses`: Fetch student’s enrolled courses.
 
-- **`test.controller.js`**
-  - `ping`: Simple endpoint to test API connectivity.
+- **test.controller.js**
+  - `ping`: Basic test API response.
 
-- **`timePlan.controller.js`**
-  - `getTimePlan`: Generates a personalized weekly study/club schedule.
-
-### Routes (Located in `backend/routes/`)
-
-- **`ability.route.js`**
-  - `GET /`: List all abilities.
-  - `POST /`: Add/update a student’s ability.
-
-- **`auth.route.js`**
-  - `POST /login`: Handles student login.
-
-- **`course.route.js`**
-  - `GET /`: All courses.
-  - `GET /:id`: Course by ID.
-
-- **`participate.route.js`**
-  - `GET /activities`: List all clubs.
-  - `GET /:id/activities/list`: Student's joined clubs.
-  - `POST /:id/activities`: Submit selected clubs.
-
-- **`performance.route.js`**
-  - `POST /`: Submit or update scores.
-  - `GET /:student_id`: Get scores for a student.
-
-- **`studentAbility.route.js`**
-  - `POST /student-ability`: Add student ability data.
-
-- **`students.route.js`**
-  - `POST /:id/courses`: Submit selected courses.
-  - `GET /:id/courses/list`: Get course selections.
-
-- **`test.route.js`**
-  - `GET /ping`: Test endpoint.
-
-- **`timePlan.route.js`**
-  - `GET /:id`: Get generated weekly plan.
+- **timePlan.controller.js**
+  - `getTimePlan`: Compute and return suggested weekly plan.
 
 ---
 
-## Frontend Details
+### API Routes (`backend/routes/`)
 
-The frontend uses Vue.js and Vue Router for SPA navigation.
+- **ability.route.js**
+  - `GET /` → List all abilities
+  - `POST /` → Add/update student ability
 
-### Components (Located in `frontend/src/components/`)
+- **auth.route.js**
+  - `POST /login` → Login
 
-- **`AbilityManager.vue`**
-  - Add/update abilities with level and description.
-  - Interacts with `/abilities` and `/api/student-ability`.
+- **course.route.js**
+  - `GET /` → List all courses
+  - `GET /:id` → Get course by ID
 
-- **`Auth.vue`**
-  - Login interface.
-  - Calls `/auth/login`, stores `student_id` in `localStorage`.
+- **participate.route.js**
+  - `GET /activities` → Get all clubs
+  - `GET /:id/activities/list` → Get student’s clubs
+  - `POST /:id/activities` → Submit selected clubs
 
-- **`Dashboard.vue`**
-  - Main post-login landing view. (Currently a placeholder.)
+- **performance.route.js**
+  - `POST /` → Add or update scores
+  - `GET /:student_id` → Get scores by student
 
-- **`PerformanceInput.vue`**
-  - Students select a course and input a score.
-  - Pulls courses from `/api/courses` and records from `/api/performance/:student_id`.
-  - Similar in function to `StudentCoursePlanner.vue`.
+- **studentAbility.route.js**
+  - `POST /student-ability` → Save student ability
 
-- **`StudentClubPage.vue`**
-  - Allows selection of clubs and displays time commitment.
-  - Interacts with `/clubs/...` endpoints.
+- **students.route.js**
+  - `POST /:id/courses` → Submit selected courses
+  - `GET /:id/courses/list` → List selected courses
 
-- **`StudentCoursePlanner.vue`**
-  - Course planning: select course, semester, expected grade, and study hours.
-  - Courses fetched from `/api/courses`, selections sent to `/students/:id/courses`.
+- **test.route.js**
+  - `GET /ping` → Server health check
 
-- **`TimePlanView.vue`**
-  - Displays a summarized weekly study plan (future feature).
-  - Interacts with `/api/time-plan/:id`.
+- **timePlan.route.js**
+  - `GET /:id` → Generate weekly study plan
 
 ---
 
-## Routing
+## Frontend Structure
 
-Routing is handled in `frontend/src/router/index.js`.
+The frontend is structured using Vue 3 and Vue Router.
 
-- **Mode**: `createWebHistory` is used.
-- **Routes**: `/login`, `/dashboard`, `/student`, `/abilities`, `/clubs`, `/performance`, and `/timeplan`.
-- **Default Redirect**: `/` → `/login`.
+### Components (`frontend/src/components/`)
+
+- **AbilityManager.vue**
+  - Select and submit abilities with proficiency and notes.
+
+- **Auth.vue**
+  - Login form. On success, saves `student_id` to localStorage.
+
+- **Dashboard.vue**
+  - Landing page after login (static placeholder).
+
+- **PerformanceInput.vue**
+  - Input performance per course and view records.
+
+- **StudentClubPage.vue**
+  - Choose clubs and see total weekly hours.
+
+- **StudentCoursePlanner.vue**
+  - Input expected grade and study time for selected courses.
+
+- **TimePlanView.vue**
+  - (Optional) Display weekly time distribution plan.
+
+---
+
+## Routing (`frontend/src/router/index.js`)
+
+- **Mode**: `createWebHistory()`
+- **Paths**:
+  - `/login`, `/dashboard`, `/student`, `/abilities`, `/clubs`, `/performance`, `/timeplan`
+- **Default redirect**: `/` → `/login`
 
 ### Navigation Guard
 
-- Checks if `student_id` exists in `localStorage`.
-- If not logged in:
-  - Redirect to `/login?reason=login_required`.
-- If already logged in and accessing `/login`, redirect to `/dashboard`.
+```js
+router.beforeEach((to, from, next) => {
+  const isLoggedIn = !!localStorage.getItem('student_id')
+
+  if (to.path !== '/login' && !isLoggedIn) {
+    next('/login?reason=login_required')
+  } else if (to.path === '/login' && isLoggedIn) {
+    next('/dashboard')
+  } else {
+    next()
+  }
+})
+## Authentication & Authorization
+
+- LocalStorage-based session.
+- Navigation guards enforce protection for private routes.
+- If not logged in, users are redirected to `/login?reason=login_required`.
+- If already logged in and navigating to `/login`, user is redirected to `/dashboard`.
+- Login page displays contextual message based on redirection reason.
+## Course Selection
+
+- Courses appear as dropdowns: `course_id - course_name`
+- User inputs:
+  - Semester
+  - Expected grade
+  - Estimated study hours
+- Records are stored in the `Student_Course_Selection` table.
+- Submissions are handled via `POST /students/:id/courses`
 
 ---
 
-## 🔐 Authentication & Authorization
+## Ability Management
 
-- Authentication is simple and sessionless (using localStorage).
-- Navigation guards enforce route protection.
-- Message prompt is shown on login page if redirected due to unauthorized access.
-
----
-
-## 📚 Course Selection
-
-- Dropdown lists with `course_id - course_name`.
-- User selects courses with expected grades and estimated study hours.
-- Data is sent to `Student_Course_Selection`.
+- Users select from a list of predefined abilities.
+- Each ability is assigned:
+  - A level (1 to 5)
+  - An optional description
+- Data is submitted to `POST /student-ability` and stored in `Student_Ability`.
 
 ---
 
-## 🧠 Ability Management
+## Performance Input
 
-- Select an ability, choose a level (1–5), and add optional notes.
-- Abilities are linked to each student in a relational table.
-
----
-
-## 🎯 Performance Entry
-
-- Students input and update their scores.
-- `ON DUPLICATE KEY UPDATE` logic allows safe re-submission.
-- View all scores in a summary table.
+- Allows students to enter and update scores for each course.
+- If a record already exists, it will be updated (`ON DUPLICATE KEY UPDATE` logic).
+- Performance data is displayed in a summary table.
+- Interacts with:
+  - `GET /api/courses` (fetch dropdown)
+  - `GET /api/performance/:student_id`
+  - `POST /api/performance`
 
 ---
 
-## 🎽 Club Participation
+## Club Participation
 
-- Join one or more clubs.
-- View all joined clubs and total weekly hours.
-- Participation data stored in `participate` table.
-
----
-
-## ⏱️ Time Planning (Optional)
-
-- Aggregates:
-  - Course study time
-  - Club hours
-  - Ability levels
-- Returns suggested weekly time allocation.
+- Students can join one or more extracurricular clubs.
+- Joined clubs are displayed along with total weekly hours.
+- Routes:
+  - `GET /clubs/activities` → list all clubs
+  - `POST /clubs/:id/activities` → submit selected clubs
+  - `GET /clubs/:id/activities/list` → fetch joined clubs
 
 ---
 
-## 💬 UX Messages
+## Time Planning
 
-- Uses in-page styled `<div>` alerts for:
-  - Login required
-  - Submission success/failure
-  - Incomplete form warnings
-- Avoids browser `alert()` popups for smoother UI.
+- A suggested weekly time allocation is generated using:
+  - Study hours from course selection
+  - Hours from club participation
+  - (Optional) Ability influence
+- API: `GET /api/time-plan/:id`
+- Output: JSON object representing weekly plan (by activity type)
 
 ---
 
-## 🧪 Testing Endpoint
+## UX Messages
 
-- `GET /api/ping` returns `{ pong, timestamp }` for testing server status.
+- Feedback messages are styled `<div>` blocks within each component
+- Common use cases:
+  - Login required message (`reason=login_required`)
+  - Submission success or error
+  - Form validation failure (e.g., incomplete inputs)
+- Avoids native `alert()` popups for better user experience
+
+---
+
+## Testing Endpoint
+
+- A minimal endpoint is available for health checks:
+  - `GET /api/ping`
+  - Response:
+    ```json
+    {
+      "pong": true,
+      "timestamp": "2025-05-26T12:00:00Z"
+    }
+    ```
