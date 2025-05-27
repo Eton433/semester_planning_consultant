@@ -1,62 +1,20 @@
-<script setup>
-import { ref, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import axios from "axios";
-
-const username = ref("");
-const password = ref("");
-const message = ref("");
-
-const router = useRouter();
-const route = useRoute();
-
-/* ✅ 監聽 query 參數，決定是否顯示「請先登入」 */
-watch(
-  () => route.query.reason,
-  (reason) => {
-    message.value =
-      reason === "login_required" ? "⚠️ 請先登入才能使用系統" : "";
-  },
-  { immediate: true } // → 元件一掛載就先跑一次
-);
-
-const login = async () => {
-  try {
-    const { data } = await axios.post("http://localhost:3000/api/auth/login", {
-      student_id: username.value,
-      password: password.value,
-    });
-
-    const student = data.user;
-    if (student?.student_id) {
-      localStorage.setItem("student_id", student.student_id);
-      message.value = "✅ 登入成功";
-      router.push("/dashboard");
-    } else {
-      message.value = "❌ 登入失敗：找不到使用者資訊";
-    }
-  } catch (err) {
-    message.value =
-      "❌ 登入失敗：" + (err.response?.data?.message || err.message);
-  }
-};
-</script>
-
 <template>
   <div class="app-background">
     <div class="container">
       <div class="header">
-        <h2 class="title">🎓 使用者登入</h2>
-        <div class="subtitle">歡迎使用學生能力管理系統</div>
+        <h2 class="title">{{ mode === 'login' ? '🎓 使用者登入' : '📝 註冊帳號' }}</h2>
+        <div class="subtitle">
+          {{ mode === 'login' ? '歡迎使用學生能力管理系統' : '請填寫註冊資訊' }}
+        </div>
       </div>
 
       <div class="form-section">
-        <form @submit.prevent="login" class="login-form">
+        <form @submit.prevent="mode === 'login' ? login() : register()" class="login-form">
           <div class="form-group">
-            <label class="form-label">使用者名稱：</label>
+            <label class="form-label">學號：</label>
             <input
               v-model="username"
-              placeholder="請輸入使用者名稱"
+              placeholder="請輸入學號"
               required
               class="form-input"
               autocomplete="username"
@@ -75,8 +33,42 @@ const login = async () => {
             />
           </div>
 
+          <template v-if="mode === 'register'">
+            <div class="form-group">
+              <label class="form-label">姓名：</label>
+              <input
+                v-model="name"
+                placeholder="請輸入姓名"
+                required
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">科系：</label>
+              <input
+                v-model="major"
+                placeholder="請輸入主修科系"
+                required
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">每週可用時數：</label>
+              <input
+                v-model.number="weeklyAvailableHours"
+                type="number"
+                min="0"
+                placeholder="請輸入時數"
+                required
+                class="form-input"
+              />
+            </div>
+          </template>
+
           <button type="submit" class="submit-btn">
-            <span>🔐 登入系統</span>
+            <span>{{ mode === 'login' ? '🔐 登入系統' : '📥 送出註冊' }}</span>
           </button>
         </form>
 
@@ -91,17 +83,97 @@ const login = async () => {
         >
           {{ message }}
         </div>
-      </div>
 
-      <div class="footer-section">
-        <div class="footer-text">
-          <p>💡 首次使用？請聯繫系統管理員申請帳號</p>
-          <p>🔒 您的資料安全是我們的首要考量</p>
+        <div class="footer-section" style="text-align: center; margin-top: 20px">
+          <button class="submit-btn" @click="toggleMode">
+            {{ mode === 'login' ? '📋 我要註冊帳號' : '🔙 返回登入' }}
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import axios from "axios";
+
+const router = useRouter();
+const route = useRoute();
+
+const mode = ref("login");
+
+const username = ref("");
+const password = ref("");
+const name = ref("");
+const major = ref("");
+const weeklyAvailableHours = ref(0);
+const message = ref("");
+
+watch(
+  () => route.query.reason,
+  (reason) => {
+    if (reason === "login_required") {
+      message.value = "⚠️ 請先登入才能使用系統";
+      mode.value = "login";
+    }
+  },
+  { immediate: true }
+);
+
+const toggleMode = () => {
+  mode.value = mode.value === "login" ? "register" : "login";
+  message.value = "";
+};
+
+const login = async () => {
+  try {
+    const { data } = await axios.post("http://localhost:3000/api/auth/login", {
+      student_id: username.value,
+      password: password.value,
+    });
+
+    const student = data.user ?? data.student ?? data;
+    if (student?.student_id) {
+      localStorage.setItem("student_id", student.student_id);
+      message.value = "✅ 登入成功";
+      router.push("/dashboard");
+    } else {
+      message.value = "❌ 登入失敗：找不到使用者資訊";
+    }
+  } catch (err) {
+    message.value =
+      "❌ 登入失敗：" + (err.response?.data?.message || err.message);
+  }
+};
+
+const register = async () => {
+  try {
+    const res = await axios.post("http://localhost:3000/api/register", {
+      student_id: username.value,
+      password: password.value,
+      name: name.value,
+      major: major.value,
+      weekly_available_hours: weeklyAvailableHours.value,
+    });
+
+    message.value = "✅ 註冊成功，請登入";
+    mode.value = "login";
+    username.value = "";
+    password.value = "";
+    name.value = "";
+    major.value = "";
+    weeklyAvailableHours.value = 0;
+  } catch (err) {
+    message.value =
+      "❌ 註冊失敗：" + (err.response?.data?.error || err.message);
+  }
+};
+</script>
+
+
+
 
 <style scoped>
 .app-background {

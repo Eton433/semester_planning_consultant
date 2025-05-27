@@ -10,6 +10,7 @@ const app = express();
 const authRoutes = require('./routes/auth.route');
 const studentAbilityRoutes = require('./routes/studentAbility.route');
 const performanceRoutes = require('./routes/performance.route');
+const registerRoutes = require('./routes/register.route');
 
 
 const timePlanRoutes = require('./routes/timePlan.route')
@@ -25,6 +26,7 @@ app.use('/api/clubs', participateRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api', studentAbilityRoutes);
 app.use('/api/performance', performanceRoutes);
+app.use('/api/register', registerRoutes);
 // 測試首頁路由
 app.get('/', (req, res) => {
   res.send('Semester Planning Consultant Backend is running!');

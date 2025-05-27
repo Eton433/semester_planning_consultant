@@ -2,42 +2,17 @@
   <div class="container">
     <!-- 頁面標題區塊 -->
     <div class="header">
-      <h1>Dashboard 首頁</h1>
-      <p>歡迎回來！這裡是您的數據總覽中心，一目了然掌握所有重要指標和最新動態。</p>
+      <h1>學期規劃顧問系統</h1>
     </div>
 
     <!-- 統計數據卡片 -->
-    <div class="stats-grid">
-      <div class="stat-card blue">
-        <h3>總訪問量</h3>
-        <div class="stat-number">12,847</div>
-        <div class="stat-change positive">↗ +8.2% 本週</div>
-      </div>
-      <div class="stat-card green">
-        <h3>新用戶</h3>
-        <div class="stat-number">1,205</div>
-        <div class="stat-change positive">↗ +12.5% 本週</div>
-      </div>
-      <div class="stat-card orange">
-        <h3>轉換率</h3>
-        <div class="stat-number">3.8%</div>
-        <div class="stat-change negative">↘ -2.1% 本週</div>
-      </div>
-      <div class="stat-card purple">
-        <h3>營收</h3>
-        <div class="stat-number">$28.4K</div>
-        <div class="stat-change positive">↗ +15.3% 本週</div>
-      </div>
-    </div>
+    
 
     <!-- 內容區塊 -->
     <div class="content-grid">
       <div class="chart-card">
-        <h3 class="card-title">📊 流量趨勢分析</h3>
-        <div class="chart-placeholder loading-animation">
-          互動式圖表將在此顯示<br />
-          <small>可整合 Chart.js 或其他圖表庫</small>
-        </div>
+        <h3 class="card-title">📊 開發團隊</h3>
+        <img  id="photo" src="./developers.jpg">
       </div>
 
       <div class="activity-card">
@@ -111,6 +86,7 @@ export default {
 </script>
 
 <style scoped>
+
 * {
   margin: 0;
   padding: 0;
@@ -226,8 +202,8 @@ body {
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
 
+}
 .card-title {
   color: #333;
   font-size: 1.3em;
@@ -289,7 +265,10 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
 }
-
+.chart-card img {
+  width: 100%;
+  height: 90%;
+}
 .action-btn {
   background: linear-gradient(45deg, #667eea, #764ba2);
   color: white;

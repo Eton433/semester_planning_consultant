@@ -11,7 +11,7 @@
           <div class="stats-card score-card">
             <div class="stats-icon">📊</div>
             <div class="stats-content">
-              <h3 class="stats-title">平均成績</h3>
+              <h3 class="stats-title">過去平均成績</h3>
               <div class="stats-value">{{ avgScore }}</div>
             </div>
           </div>
@@ -53,7 +53,7 @@
               <thead>
                 <tr>
                   <th class="table-header">星期</th>
-                  <th class="table-header">上課 (小時)</th>
+                  <th class="table-header">學習 (小時)</th>
                   <th class="table-header">複習 (小時)</th>
                   <th class="table-header">社團 (小時)</th>
                 </tr>
@@ -77,19 +77,29 @@
   import { ref, onMounted } from 'vue';
   import axios from 'axios';
   
-  const studentId = {studentId};
+const studentId = ref(localStorage.getItem('student_id'));
+
+
   const avgScore = ref(0);
   const courseReviewTimes = ref({});
   const activities = ref([]);
   const weeklyPlan = ref({});
   
   onMounted(async () => {
-    const res = await axios.get(`/api/time-plan/${studentId}`);
+    if (!studentId.value) {
+    console.warn("⚠️ student_id 不存在，使用者尚未登入");
+    return;
+  }
+  try {
+    const res = await axios.get(`/api/time-plan/${studentId.value}`);
     avgScore.value = res.data.avg_score;
     courseReviewTimes.value = res.data.courseReviewTimes;
     activities.value = res.data.activities;
     weeklyPlan.value = res.data.weeklyPlan;
-  });
+  } catch (error) {
+    console.error('❌ 載入時間規劃失敗:', error);
+  }
+});
   </script>
   
   <style scoped>
